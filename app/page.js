@@ -1,6 +1,7 @@
 "use client";
 
-import { IconCoins } from "@tabler/icons-react";
+import { IconBrandGithub, IconCoins } from "@tabler/icons-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -88,6 +89,16 @@ export default function Home() {
           upgrades. Spending coins helps keep the economy stable.
         </p>
       </div>
+
+      <footer className="p-4 bg-black text-center justify-center flex flex-col items-center h-full ">
+        <p className="mb-4">Ryomen</p>
+
+        <Link href="https://www.github.com/Sky28702">
+          <IconBrandGithub stroke={2} className="mb-4" />
+        </Link>
+
+        <p className="mb-4"> © 2026 Mr Currency. All rights reserved. </p>
+      </footer>
     </section>
   );
 }
