@@ -23,7 +23,11 @@ export default function RootLayout({ children }) {
           referrerPolicy="no-referrer"
         />
       </head>
-      <body className={`${rubik.variable} antialiased`}>{children}</body>
+      <body
+        className={`${rubik.variable} antialiased bg-gray-950 text-white mx-0 my-auto p-0 max-w-5xl box-border`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
