@@ -1,95 +1,120 @@
 "use client";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { toast, Toaster } from "react-hot-toast";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { login } from "../../api/movies";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { IconLoader2 } from "@tabler/icons-react";
 
-function SignIn() {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm();
+function login() {
+  const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-
+  const router = useRouter();
   useEffect(() => {
     const localData = localStorage.getItem("Current User");
     if (localData) {
-      navigate("/");
+      router.push("/");
     }
-  }, [navigate]);
+  }, []);
 
-  const [error, setError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
-  async function onSubmit(data) {
-    let result = await login(data, setError, setErrorMessage);
+  let [authStatus, setAuthStatus] = useState();
+  const [error, setError] = useState("");
 
-    console.log("Login result:", result);
-    if (result.data.success === true) {
-      // Set current user
-      localStorage.setItem("Current User", JSON.stringify(result.data.user));
+  async function atSubmit(data) {
+    setLoading(true);
+    try {
+      const res = await axios.post("/backend/api/signin", data);
 
-      // Navigate to home
-      navigate("/");
+      if (res.data.success) {
+        localStorage.setItem("Current User", JSON.stringify(res.data.user));
+        router.push("/");
+      }
+
+      setAuthStatus(res.data.success);
+      setError(res.data.message);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen  text-white">
-      <form
-        className="text-center flex flex-col justify-between items-center  bg-slate-950 mx-6 w-110 rounded-md p-10 shadow shadow-indigo-900"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <h1 className="font-medium text-3xl mb-6">Login</h1>
-        <input
-          type="text"
-          className="border border-slate-800 py-2 px-2 w-full rounded-[10px] mb-4 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-slate-900"
-          placeholder="User Name"
-          {...register("userName", {
-            required: "UserName is required",
-          })}
-        />
-        {errors.userName && (
-          <p className="text-red-600 mb-4 -mt-2.5">{errors.userName.message}</p>
-        )}
-        <input
-          type="password"
-          className="border border-slate-800 py-2 px-2 w-full rounded-[10px] mb-4 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-slate-900"
-          placeholder="Password"
-          {...register("password", {
-            required: "Password is required",
-          })}
-        />
-        {errors.password && (
-          <p className="text-red-600 mb-4 -mt-2.5">{errors.password.message}</p>
-        )}
+    <section className="  flex flex-col justify-center items-center h-screen  p-4">
+      <h1 className="font-bold text-2xl mb-10">Login</h1>
+      <form onSubmit={handleSubmit(atSubmit)} className="w-full max-w-sm">
+        <div className="flex flex-col justify-center items-center gap-4    ">
+          <div className="w-full">
+            <input
+              placeholder="User Name"
+              className="w-full  active:outline-gray-100 active:outline-2 outline-none focus:outline  border  border-gray-100  p-2 rounded-2xl focus:outline-gray-100"
+              {...register("userName", {
+                required: "Username is required",
+                minLength: {
+                  value: 3,
+                  message: "Username must be at least 3 characters",
+                },
+              })}
+            ></input>
+            {errors.userName && (
+              <p className="text-red-600 mb-2 mt-2">
+                {errors.userName.message}
+              </p>
+            )}
+          </div>
 
-        <p
-          className={`text-center mb-4 ${
-            error === false ? "text-red-500" : "text-green-500"
-          }`}
-        >
-          {errorMessage}
-        </p>
+          <div className="w-full">
+            <input
+              type="password"
+              placeholder="Password"
+              className=" mb-4 w-full active:outline-gray-100 active:outline-2 outline-none focus:outline border  border-gray-100  p-2 rounded-2xl  focus:outline-gray-100"
+              {...register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
+            ></input>
+            {errors.password && (
+              <p className="text-red-600 mb-2 mt-2">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+          <p className="font-normal  ">
+            New Here?{" "}
+            <Link href="/sign-up" className="text-gray-400">
+              Register Now
+            </Link>
+          </p>
 
-        <p className="mb-6">
-          Don't have an account?{" "}
-          <Link to="/signup">
-            <span className="cursor-pointer text-blue-400">signup</span>
-          </Link>
-        </p>
-        <button className="bg-slate-700 text-[18px] py-2 px-6 rounded-2xl shadow shadow-indigo-950 cursor-pointer">
-          Login
-        </button>
+          <p
+            className={`  text-[16px] font-light ${
+              authStatus == true ? "text-green-500" : "text-red-500"
+            } `}
+          >
+            {" "}
+            {error}{" "}
+          </p>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-gray-500 hover:bg-gray-700 cursor-pointer px-4 py-2 rounded-[10px] text-white text-[20px] flex items-center justify-center"
+          >
+            {loading ? <IconLoader2 className="animate-spin" /> : "Login"}
+          </button>
+        </div>
       </form>
-    </div>
+    </section>
   );
 }
 
-export default SignIn;
+export default login;
